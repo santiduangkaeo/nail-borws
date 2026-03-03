@@ -4,6 +4,7 @@ import "./globals.css";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { SettingsProvider } from "@/components/layout/settings-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -43,6 +44,7 @@ export default function RootLayout({
               </main>
             </div>
           </div>
+          <Toaster richColors position="top-right" />
         </SettingsProvider>
       </body>
     </html>

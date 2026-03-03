@@ -30,7 +30,7 @@ export const TransactionItemSchema = z.object({
 export const TransactionSchema = z.object({
     customerName: z.string().min(1, "กรุณากรอกชื่อลูกค้า").max(100),
     employeeName: z.string().min(1, "กรุณาเลือกพนักงาน").max(100),
-    paymentMethod: z.enum(["CASH", "TRANSFER", "PROMPTPAY", "CREDIT_CARD"], {
+    paymentMethod: z.enum(["CASH", "TRANSFER", "PROMPTPAY", "CREDIT_CARD", "GOWABI", "ALIPAY"], {
         message: "วิธีชำระเงินไม่ถูกต้อง",
     }),
     totalAmount: z.number({ message: "ยอดรวมต้องเป็นตัวเลข" }).positive("ยอดรวมต้องมากกว่า 0"),

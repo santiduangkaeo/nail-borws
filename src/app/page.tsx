@@ -157,7 +157,7 @@ export default function RecordsPage() {
                 totalAmount: cartTotal,
                 description: cart.map((c) => c.service.name).join(", "),
                 date: txDateIso,
-                items: cart.map((c) => ({ serviceId: c.service.id, quantity: c.quantity, price: c.service.price })),
+                items: cart.map((c) => ({ serviceId: c.service.id, quantity: c.quantity, price: Number(c.service.price) })),
             };
             const res = await fetch("/api/transactions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
             if (!res.ok) throw new Error();
