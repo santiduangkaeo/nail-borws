@@ -24,11 +24,26 @@ export async function GET(request: NextRequest) {
         });
 
         if (!existingRent) {
+            // Calculate previous month's revenue for Furniture Depreciation (8%)
+            const prevMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+            const startOfPrevMonth = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth(), 1);
+            const endOfPrevMonth = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth() + 1, 0, 23, 59, 59, 999);
+
+            // Using the same logic as dashboard to get revenue
+            const prevMonthTransactions = await prisma.transaction.findMany({
+                where: {
+                    date: { gte: startOfPrevMonth, lte: endOfPrevMonth }
+                }
+            });
+            const prevMonthRevenue = prevMonthTransactions.reduce((sum, t) => sum + Number(t.totalAmount), 0);
+            const furnitureDepreciationAmount = Math.round(prevMonthRevenue * 0.08);
+
             const fixedExpenses = [
                 { description: "ค่าเช่าร้าน", amount: 15000, category: "รายจ่ายคงที่" },
                 { description: "ค่าเน็ต", amount: 350, category: "รายจ่ายคงที่" },
                 { description: "ค่าเครื่องรูดการ์ด", amount: 300, category: "รายจ่ายคงที่" },
                 { description: "ขยะ", amount: 50, category: "รายจ่ายคงที่" },
+                { description: "ค่าเสื่อมเฟอร์นิเจอร์", amount: furnitureDepreciationAmount, category: "รายจ่ายคงที่" },
             ];
             await prisma.expense.createMany({
                 data: fixedExpenses.map((e) => ({ ...e, date: firstDayOfMonth })),

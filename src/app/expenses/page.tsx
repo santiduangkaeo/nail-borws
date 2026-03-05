@@ -95,11 +95,32 @@ export default function ExpensesPage() {
     };
 
     const currentMonth = format(new Date(), "yyyy-MM");
-    const filtered = expenses.filter((e) => {
-        const matchesSearch = e.description.includes(search) || e.category.includes(search);
-        const isCurrentMonth = e.date?.slice(0, 7) === currentMonth;
-        return matchesSearch && isCurrentMonth;
-    });
+
+    const getPriority = (desc: string) => {
+        if (desc.startsWith("เงินเดือนพนักงาน")) return 1;
+        if (desc.includes("ขยะ")) return 2;
+        if (desc.includes("เครื่องรูดการ์ด")) return 3;
+        if (desc.includes("เน็ต")) return 4;
+        if (desc.includes("เสื่อมเฟอร์นิเจอร์")) return 5;
+        if (desc.includes("ค่าเช่าร้าน")) return 6;
+        return 99;
+    };
+
+    const filtered = expenses
+        .filter((e) => {
+            const matchesSearch = e.description.includes(search) || e.category.includes(search);
+            const isCurrentMonth = e.date?.slice(0, 7) === currentMonth;
+            return matchesSearch && isCurrentMonth;
+        })
+        .sort((a, b) => {
+            // 1. Date Descending (Newest first)
+            const dateA = new Date(a.date).getTime();
+            const dateB = new Date(b.date).getTime();
+            if (dateA !== dateB) return dateB - dateA;
+
+            // 2. Specific Priority for Fixed Expenses
+            return getPriority(a.description) - getPriority(b.description);
+        });
     const totalThisMonth = expenses
         .filter((e) => e.date?.slice(0, 7) === format(new Date(), "yyyy-MM"))
         .reduce((sum, e) => sum + Number(e.amount), 0);

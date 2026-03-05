@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { format } from "date-fns";
+import { format, startOfWeek, endOfWeek, subWeeks } from "date-fns";
+import { th } from "date-fns/locale";
 import { Clock, Loader2, Calendar as CalendarIcon, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -124,10 +125,9 @@ export default function StaffLogsPage() {
         try {
             setLoading(true);
             const params = new URLSearchParams();
-            if (range === "date") {
+            params.set("range", range);
+            if (dateParam) {
                 params.set("date", dateParam);
-            } else {
-                params.set("range", range);
             }
             const res = await fetch(`/api/staff-logs?${params}`);
             if (!res.ok) throw new Error("Failed to fetch");
@@ -202,10 +202,52 @@ export default function StaffLogsPage() {
                     <div className="flex flex-col sm:flex-row gap-4">
                         <div className="flex-1 relative">
                             <Label className="text-xs text-gray-500 mb-1 block">
-                                {range === "monthly" ? "Select Month" : "Select Date"} (Optional)
+                                {range === "monthly" ? "Select Month" : range === "weekly" ? "Select Week" : "Select Date"} (Optional)
                             </Label>
                             <div className="relative">
-                                {range === "monthly" ? (
+                                {range === "weekly" ? (
+                                    <Select
+                                        value={(() => {
+                                            const target = dateParam ? new Date(dateParam) : new Date();
+                                            const start = startOfWeek(target, { weekStartsOn: 0 });
+                                            return format(start, "yyyy-MM-dd");
+                                        })()}
+                                        onValueChange={(val) => setDateParam(val)}
+                                    >
+                                        <SelectTrigger className="w-full h-11 bg-gray-50/50 border-gray-200">
+                                            <div className="flex items-center gap-2">
+                                                <CalendarIcon className="h-4 w-4 text-gray-400" />
+                                                <SelectValue placeholder="Select Week" />
+                                            </div>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {(() => {
+                                                const now = new Date();
+                                                const startOfThisYear = new Date(now.getFullYear(), 0, 1);
+                                                const week1Start = startOfWeek(startOfThisYear, { weekStartsOn: 0 });
+                                                const currentWeekStart = startOfWeek(now, { weekStartsOn: 0 });
+
+                                                const weeks: Date[] = [];
+                                                let temp = currentWeekStart;
+                                                while (temp >= week1Start) {
+                                                    weeks.push(new Date(temp));
+                                                    temp = subWeeks(temp, 1);
+                                                }
+
+                                                return weeks.map((weekDate) => {
+                                                    const start = startOfWeek(weekDate, { weekStartsOn: 0 });
+                                                    const end = endOfWeek(weekDate, { weekStartsOn: 0 });
+                                                    const dateKey = format(start, "yyyy-MM-dd");
+                                                    return (
+                                                        <SelectItem key={dateKey} value={dateKey}>
+                                                            Week {format(weekDate, "w")} ({format(start, "dd/MM")} - {format(end, "dd/MM")})
+                                                        </SelectItem>
+                                                    );
+                                                });
+                                            })()}
+                                        </SelectContent>
+                                    </Select>
+                                ) : range === "monthly" ? (
                                     <div className="flex gap-2">
                                         <Select
                                             value={dateParam ? new Date(dateParam).getMonth().toString() : new Date().getMonth().toString()}
@@ -291,8 +333,16 @@ export default function StaffLogsPage() {
             {/* Displaying Current Filter */}
             <div className="text-center font-bold text-rose-800 tracking-tight text-lg mt-2 mb-4 bg-rose-50 border border-rose-100 py-2 rounded-xl">
                 Sales Summary — {range === "today" ? format(new Date(), "dd/MM/yyyy") :
-                    range === "weekly" ? "This Week" :
-                        range === "monthly" ? "This Month" :
+                    range === "weekly" ? (() => {
+                        const target = dateParam ? new Date(dateParam) : new Date();
+                        const start = startOfWeek(target, { weekStartsOn: 0 });
+                        const end = endOfWeek(target, { weekStartsOn: 0 });
+                        return `Week ${format(target, "w")} (${format(start, "dd/MM/yyyy")} - ${format(end, "dd/MM/yyyy")})`;
+                    })() :
+                        range === "monthly" ? (() => {
+                            const target = dateParam ? new Date(dateParam) : new Date();
+                            return `Month: ${format(target, "MMMM yyyy")}`;
+                        })() :
                             format(new Date(dateParam), "dd/MM/yyyy")}
             </div>
 
@@ -390,7 +440,18 @@ export default function StaffLogsPage() {
                                     <h4 className="font-bold text-rose-800 text-sm mb-3">Daily Breakdown</h4>
 
                                     <div className="bg-rose-50/50 text-rose-800 p-2.5 rounded-lg font-semibold text-sm mb-3 border border-rose-100">
-                                        {range === "today" ? format(new Date(), "dd/MM/yyyy") : range === "date" ? format(new Date(dateParam), "dd/MM/yyyy") : "All transactions"}
+                                        {range === "today" ? format(new Date(), "dd/MM/yyyy") :
+                                            range === "weekly" ? (() => {
+                                                const target = dateParam ? new Date(dateParam) : new Date();
+                                                const start = startOfWeek(target, { weekStartsOn: 0 });
+                                                const end = endOfWeek(target, { weekStartsOn: 0 });
+                                                return `Week ${format(target, "w")} (${format(start, "dd/MM/yyyy")} - ${format(end, "dd/MM/yyyy")})`;
+                                            })() :
+                                                range === "monthly" ? (() => {
+                                                    const target = dateParam ? new Date(dateParam) : new Date();
+                                                    return `Month: ${format(target, "MMMM yyyy")}`;
+                                                })() :
+                                                    range === "date" ? format(new Date(dateParam), "dd/MM/yyyy") : "All transactions"}
                                     </div>
 
                                     {["CASH", "CREDIT_CARD", "PROMPTPAY", "GOWABI", "ALIPAY"].map((method) => {

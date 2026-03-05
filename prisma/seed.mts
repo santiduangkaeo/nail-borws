@@ -22,9 +22,9 @@ async function main() {
     console.log(`✅ สร้างผู้ใช้: ${admin.name}`);
 
     await prisma.user.create({
-        data: { name: "พนักงาน สมศรี", email: "staff@nailsandbrows.com", password: "$2b$10$dummyhashforseeding1234567890", role: "STAFF" },
+        data: { name: " สมศรี", email: "staff@nailsandbrows.com", password: "$2b$10$dummyhashforseeding1234567890", role: "STAFF" },
     });
-    console.log("✅ สร้างผู้ใช้: พนักงาน สมศรี");
+    console.log("✅ สร้างผู้ใช้:  สมศรี");
 
     // Service Items
     const services = await Promise.all([
@@ -95,64 +95,64 @@ async function main() {
     ]);
     console.log(`✅ สร้างนัดหมาย ${appointments.length} รายการ`);
 
-    // Sample Transactions
-    await prisma.transaction.create({
-        data: {
-            employeeName: "พนักงาน สมศรี",
-            customerName: "คุณหญิง", totalAmount: 1100, paymentMethod: "CASH", description: "ทาเล็บเจล + ต่อเล็บเจล", date: today,
-            items: { create: [{ serviceId: services[0].id, quantity: 1, price: 300 }, { serviceId: services[11].id, quantity: 1, price: 800 }] }
-        },
-    });
-    await prisma.transaction.create({
-        data: {
-            employeeName: "พนักงาน สมศรี",
-            customerName: "คุณน้ำ", totalAmount: 3000, paymentMethod: "TRANSFER", description: "ฝังสีคิ้ว", date: today,
-            items: { create: [{ serviceId: services[38].id, quantity: 1, price: 3000 }] }
-        },
-    });
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    await prisma.transaction.create({
-        data: {
-            employeeName: "พนักงาน สมศรี",
-            customerName: "คุณแก้ว", totalAmount: 700, paymentMethod: "PROMPTPAY", description: "ทำเล็บมือ + เท้า", date: yesterday,
-            items: { create: [{ serviceId: services[2].id, quantity: 1, price: 700 }] }
-        },
-    });
-    await prisma.transaction.create({
-        data: {
-            employeeName: "พนักงาน ฟ้า",
-            customerName: "คุณสมหญิง", totalAmount: 1500, paymentMethod: "CREDIT_CARD", description: "ต่อขนตา", date: today,
-            items: { create: [{ serviceId: services[29].id, quantity: 1, price: 1500 }] }
-        },
-    });
-    await prisma.transaction.create({
-        data: {
-            employeeName: "พนักงาน น้ำ",
-            customerName: "คุณพรนภา", totalAmount: 400, paymentMethod: "CASH", description: "สปาเท้า", date: today,
-            items: { create: [{ serviceId: services[1].id, quantity: 1, price: 400 }] }
-        },
-    });
-    await prisma.transaction.create({
-        data: {
-            employeeName: "พนักงาน ฟ้า",
-            customerName: "คุณนลิน", totalAmount: 850, paymentMethod: "TRANSFER", description: "ต่อเล็บเจล + ทาสี", date: yesterday,
-            items: { create: [{ serviceId: services[3].id, quantity: 1, price: 650 }, { serviceId: services[4].id, quantity: 1, price: 200 }] }
-        },
-    });
+    // // Sample Transactions
+    // await prisma.transaction.create({
+    //     data: {
+    //         employeeName: "พนักงาน สมศรี",
+    //         customerName: "คุณหญิง", totalAmount: 1100, paymentMethod: "CASH", description: "ทาเล็บเจล + ต่อเล็บเจล", date: today,
+    //         items: { create: [{ serviceId: services[0].id, quantity: 1, price: 300 }, { serviceId: services[11].id, quantity: 1, price: 800 }] }
+    //     },
+    // });
+    // await prisma.transaction.create({
+    //     data: {
+    //         employeeName: "พนักงาน สมศรี",
+    //         customerName: "คุณน้ำ", totalAmount: 3000, paymentMethod: "TRANSFER", description: "ฝังสีคิ้ว", date: today,
+    //         items: { create: [{ serviceId: services[38].id, quantity: 1, price: 3000 }] }
+    //     },
+    // });
+    // const yesterday = new Date(today);
+    // yesterday.setDate(yesterday.getDate() - 1);
+    // await prisma.transaction.create({
+    //     data: {
+    //         employeeName: "พนักงาน สมศรี",
+    //         customerName: "คุณแก้ว", totalAmount: 700, paymentMethod: "PROMPTPAY", description: "ทำเล็บมือ + เท้า", date: yesterday,
+    //         items: { create: [{ serviceId: services[2].id, quantity: 1, price: 700 }] }
+    //     },
+    // });
+    // await prisma.transaction.create({
+    //     data: {
+    //         employeeName: "พนักงาน ฟ้า",
+    //         customerName: "คุณสมหญิง", totalAmount: 1500, paymentMethod: "CREDIT_CARD", description: "ต่อขนตา", date: today,
+    //         items: { create: [{ serviceId: services[29].id, quantity: 1, price: 1500 }] }
+    //     },
+    // });
+    // await prisma.transaction.create({
+    //     data: {
+    //         employeeName: "พนักงาน น้ำ",
+    //         customerName: "คุณพรนภา", totalAmount: 400, paymentMethod: "CASH", description: "สปาเท้า", date: today,
+    //         items: { create: [{ serviceId: services[1].id, quantity: 1, price: 400 }] }
+    //     },
+    // });
+    // await prisma.transaction.create({
+    //     data: {
+    //         employeeName: "พนักงาน ฟ้า",
+    //         customerName: "คุณนลิน", totalAmount: 850, paymentMethod: "TRANSFER", description: "ต่อเล็บเจล + ทาสี", date: yesterday,
+    //         items: { create: [{ serviceId: services[3].id, quantity: 1, price: 650 }, { serviceId: services[4].id, quantity: 1, price: 200 }] }
+    //     },
+    // });
 
-    console.log("✅ สร้างรายการขาย 6 รายการ");
+    // console.log("✅ สร้างรายการขาย 6 รายการ");
 
     // Sample Expenses
-    const expenses = await Promise.all([
-        prisma.expense.create({ data: { amount: 1500, description: "สั่งซื้อสีเจลเล็บ 10 สี", category: "วัสดุ/อุปกรณ์", date: today } }),
-        prisma.expense.create({ data: { amount: 800, description: "ค่าน้ำ-ค่าไฟ ประจำเดือน", category: "ค่าสาธารณูปโภค", date: today } }),
-        prisma.expense.create({ data: { amount: 350, description: "ซื้อกาแฟและขนมสำหรับลูกค้า", category: "เครื่องดื่ม/ของว่าง", date: yesterday } }),
-        prisma.expense.create({ data: { amount: 2000, description: "ค่าเช่าร้าน (บางส่วน)", category: "ค่าเช่า", date: yesterday } }),
-    ]);
-    console.log(`✅ สร้างรายจ่าย ${expenses.length} รายการ`);
+    //     const expenses = await Promise.all([
+    //         prisma.expense.create({ data: { amount: 1500, description: "สั่งซื้อสีเจลเล็บ 10 สี", category: "วัสดุ/อุปกรณ์", date: today } }),
+    //         prisma.expense.create({ data: { amount: 800, description: "ค่าน้ำ-ค่าไฟ ประจำเดือน", category: "ค่าสาธารณูปโภค", date: today } }),
+    //         prisma.expense.create({ data: { amount: 350, description: "ซื้อกาแฟและขนมสำหรับลูกค้า", category: "เครื่องดื่ม/ของว่าง", date: yesterday } }),
+    //         prisma.expense.create({ data: { amount: 2000, description: "ค่าเช่าร้าน (บางส่วน)", category: "ค่าเช่า", date: yesterday } }),
+    //     ]);
+    //     console.log(`✅ สร้างรายจ่าย ${expenses.length} รายการ`);
 
-    console.log("🎉 Seeding เสร็จสิ้น!");
+    //     console.log("🎉 Seeding เสร็จสิ้น!");
 }
 
 main()
