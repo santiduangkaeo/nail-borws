@@ -38,24 +38,30 @@ export async function GET(request: NextRequest) {
         let updatedCount = 0;
 
         // 1. Check and create Fixed Expenses (Rent, Net, etc.)
-        const existingRent = await prisma.expense.findFirst({
-            where: {
-                description: "ค่าเช่าร้าน",
-                date: { gte: startOfMonth, lte: endOfMonth },
-            },
-        });
+        const fixedExpensesTemplate = [
+            { description: "ค่าเช่าร้าน", amount: 15000, category: "รายจ่ายคงที่" },
+            { description: "ค่าเน็ต", amount: 350, category: "รายจ่ายคงที่" },
+            { description: "ค่าเครื่องรูดการ์ด", amount: 300, category: "รายจ่ายคงที่" },
+            { description: "ขยะ", amount: 50, category: "รายจ่ายคงที่" },
+        ];
 
-        if (!existingRent) {
-            const fixedExpenses = [
-                { description: "ค่าเช่าร้าน", amount: 15000, category: "รายจ่ายคงที่" },
-                { description: "ค่าเน็ต", amount: 350, category: "รายจ่ายคงที่" },
-                { description: "ค่าเครื่องรูดการ์ด", amount: 300, category: "รายจ่ายคงที่" },
-                { description: "ขยะ", amount: 50, category: "รายจ่ายคงที่" },
-            ];
-            await prisma.expense.createMany({
-                data: fixedExpenses.map((e) => ({ ...e, date: firstDayOfMonthBkk12 })),
+        for (const expense of fixedExpensesTemplate) {
+            const existing = await prisma.expense.findFirst({
+                where: {
+                    description: expense.description,
+                    date: { gte: startOfMonth, lte: endOfMonth },
+                },
             });
-            createdCount += fixedExpenses.length;
+
+            if (!existing) {
+                await prisma.expense.create({
+                    data: {
+                        ...expense,
+                        date: firstDayOfMonthBkk12,
+                    },
+                });
+                createdCount++;
+            }
         }
 
         // 2. Handle Furniture Depreciation (8% of CURRENT month revenue)
