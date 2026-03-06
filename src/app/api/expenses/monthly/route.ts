@@ -9,21 +9,30 @@ export async function GET(request: NextRequest) {
         const dateParam = searchParams.get("date");
 
         // Handle timezone for Thailand (UTC+7)
-        // If no date provided, use current time in Thailand
-        let currentDate: Date;
+        // Ensure all calculations are based on Thailand time even if server is in UTC
+        const nowUtc = new Date();
+        const bkkString = nowUtc.toLocaleString("en-US", { timeZone: "Asia/Bangkok" });
+        const bkkNow = new Date(bkkString);
+
+        let targetDate: Date;
         if (dateParam) {
-            currentDate = new Date(dateParam);
+            // If dateParam is provided, we assume it's meant to be that date in BKK context
+            targetDate = new Date(dateParam);
         } else {
-            const now = new Date();
-            // Offset to Thai time if we want to be precise, but usually currentDate is fine for server-side month detection
-            currentDate = now;
+            targetDate = bkkNow;
         }
 
-        console.log("Checking monthly expenses for date:", currentDate.toISOString());
+        const year = targetDate.getFullYear();
+        const month = targetDate.getMonth();
 
-        const startOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-        const endOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999);
-        const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 12, 0, 0);
+        // Start and end of month in UTC terms that represent 00:00 and 23:59:59 in BKK
+        // 00:00 BKK is 17:00 UTC previous day
+        const startOfMonth = new Date(Date.UTC(year, month, 1 - 1, 17, 0, 0, 0));
+        const endOfMonth = new Date(Date.UTC(year, month + 1, 0, 16, 59, 59, 999));
+
+        // For display/record dates, we'll store them as BKK 12:00 or 23:00 represented in UTC
+        const firstDayOfMonthBkk12 = new Date(Date.UTC(year, month, 1, 5, 0, 0, 0)); // 05:00 UTC = 12:00 BKK
+        const lastDayOfMonthBkk23 = new Date(Date.UTC(year, month + 1, 0, 16, 0, 0, 0)); // 16:00 UTC = 23:00 BKK
 
         let createdCount = 0;
         let updatedCount = 0;
@@ -37,33 +46,60 @@ export async function GET(request: NextRequest) {
         });
 
         if (!existingRent) {
-            // Calculate previous month's revenue for Furniture Depreciation (8%)
-            const prevMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
-            const startOfPrevMonth = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth(), 1);
-            const endOfPrevMonth = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth() + 1, 0, 23, 59, 59, 999);
-
-            const prevMonthTransactions = await prisma.transaction.findMany({
-                where: {
-                    date: { gte: startOfPrevMonth, lte: endOfPrevMonth }
-                }
-            });
-            const prevMonthRevenue = prevMonthTransactions.reduce((sum, t) => sum + Number(t.totalAmount), 0);
-            const furnitureDepreciationAmount = Math.round(prevMonthRevenue * 0.08);
-
             const fixedExpenses = [
                 { description: "ค่าเช่าร้าน", amount: 15000, category: "รายจ่ายคงที่" },
                 { description: "ค่าเน็ต", amount: 350, category: "รายจ่ายคงที่" },
                 { description: "ค่าเครื่องรูดการ์ด", amount: 300, category: "รายจ่ายคงที่" },
                 { description: "ขยะ", amount: 50, category: "รายจ่ายคงที่" },
-                { description: "ค่าเสื่อมเฟอร์นิเจอร์", amount: furnitureDepreciationAmount, category: "รายจ่ายคงที่" },
             ];
             await prisma.expense.createMany({
-                data: fixedExpenses.map((e) => ({ ...e, date: firstDayOfMonth })),
+                data: fixedExpenses.map((e) => ({ ...e, date: firstDayOfMonthBkk12 })),
             });
             createdCount += fixedExpenses.length;
         }
 
-        // 2. Synchronize Staff Salaries
+        // 2. Handle Furniture Depreciation (8% of CURRENT month revenue)
+        // This is calculated at 23:00 on the last day of the month by convention,
+        // but can be updated multiple times as revenue grows.
+        const currentMonthTransactions = await prisma.transaction.findMany({
+            where: {
+                date: { gte: startOfMonth, lte: endOfMonth }
+            }
+        });
+        const currentMonthRevenue = currentMonthTransactions.reduce((sum, t) => sum + Number(t.totalAmount), 0);
+        const furnitureDepreciationAmount = Math.round(currentMonthRevenue * 0.08);
+
+        const lastDayOfMonthBkk23 = new Date(Date.UTC(year, month + 1, 0, 16, 0, 0, 0)); // 16:00 UTC = 23:00 BKK
+
+        const existingDepreciation = await prisma.expense.findFirst({
+            where: {
+                description: "ค่าเสื่อมเฟอร์นิเจอร์",
+                date: { gte: startOfMonth, lte: endOfMonth },
+            },
+        });
+
+        if (!existingDepreciation && furnitureDepreciationAmount > 0) {
+            await prisma.expense.create({
+                data: {
+                    description: "ค่าเสื่อมเฟอร์นิเจอร์",
+                    amount: furnitureDepreciationAmount,
+                    category: "รายจ่ายคงที่",
+                    date: lastDayOfMonthBkk23,
+                },
+            });
+            createdCount++;
+        } else if (existingDepreciation && (Number(existingDepreciation.amount) !== furnitureDepreciationAmount || existingDepreciation.date.getTime() !== lastDayOfMonthBkk23.getTime())) {
+            await prisma.expense.update({
+                where: { id: existingDepreciation.id },
+                data: {
+                    amount: furnitureDepreciationAmount,
+                    date: lastDayOfMonthBkk23
+                },
+            });
+            updatedCount++;
+        }
+
+        // 3. Synchronize Staff Salaries
         const staffList = await prisma.user.findMany({
             where: { salary: { gt: 0 } },
         });
@@ -86,7 +122,7 @@ export async function GET(request: NextRequest) {
                         description: description,
                         amount: amount,
                         category: "เงินเดือน",
-                        date: firstDayOfMonth,
+                        date: firstDayOfMonthBkk12,
                     },
                 });
                 createdCount++;
