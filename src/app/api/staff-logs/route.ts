@@ -73,7 +73,9 @@ export async function GET(request: NextRequest) {
             grouped[empName].transactions.push(t);
         }
 
-        const result = Object.values(grouped).sort((a: any, b: any) => b.totalAmount - a.totalAmount);
+        const result = Object.values(grouped).sort((a: any, b: any) =>
+            a.employeeName.localeCompare(b.employeeName, 'th')
+        );
 
         return NextResponse.json(result);
     } catch (error) {
