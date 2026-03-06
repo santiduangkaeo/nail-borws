@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { AppointmentSchema } from "@/lib/validations";
+import { getBkkNow } from "@/lib/date-utils";
 
 // GET all appointments
 export async function GET(request: NextRequest) {

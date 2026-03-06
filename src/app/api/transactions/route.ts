@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { TransactionSchema } from "@/lib/validations";
+import { getBkkNow } from "@/lib/date-utils";
 
 // GET all transactions
 export async function GET(request: NextRequest) {
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
                 totalAmount,
                 paymentMethod,
                 description: description ?? "",
-                date: date ? new Date(date) : new Date(),
+                date: date ? new Date(date) : getBkkNow(),
                 items: {
                     create: items,
                 },

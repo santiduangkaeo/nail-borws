@@ -1,17 +1,25 @@
 /**
+ * Returns a new Date object representing the current time in "Asia/Bangkok" (UTC+7).
+ * Use this when creating new records (transactions, expenses) to ensure they are 
+ * tagged correctly in the Thai timezone regardless of server location.
+ */
+export function getBkkNow() {
+    const nowUtc = new Date();
+    const bkkString = nowUtc.toLocaleString("en-US", { timeZone: "Asia/Bangkok" });
+    return new Date(bkkString);
+}
+
+/**
  * Generates the UTC start and end Date objects for a given day in "Asia/Bangkok" (UTC+7) timezone.
  * Useful for Prisma queries when the server is running in a different timezone (like Vercel in UTC).
  */
 export function getBkkTodayRange(dateParam?: string | null) {
-    const nowUtc = new Date();
-
     // If dateParam is provided (YYYY-MM-DD), use it. Otherwise use current time in BKK.
     let targetDate: Date;
     if (dateParam) {
         targetDate = new Date(dateParam);
     } else {
-        const bkkString = nowUtc.toLocaleString("en-US", { timeZone: "Asia/Bangkok" });
-        targetDate = new Date(bkkString);
+        targetDate = getBkkNow();
     }
 
     const year = targetDate.getFullYear();

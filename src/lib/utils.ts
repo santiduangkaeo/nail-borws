@@ -17,6 +17,7 @@ export function formatDate(date: Date | string): string {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
+        timeZone: 'Asia/Bangkok'
     }).format(new Date(date))
 }
 
@@ -24,5 +25,6 @@ export function formatTime(date: Date | string): string {
     return new Intl.DateTimeFormat('th-TH', {
         hour: '2-digit',
         minute: '2-digit',
+        timeZone: 'Asia/Bangkok'
     }).format(new Date(date))
 }
