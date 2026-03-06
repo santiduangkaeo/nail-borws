@@ -69,8 +69,6 @@ export async function GET(request: NextRequest) {
         const currentMonthRevenue = currentMonthTransactions.reduce((sum, t) => sum + Number(t.totalAmount), 0);
         const furnitureDepreciationAmount = Math.round(currentMonthRevenue * 0.08);
 
-        const lastDayOfMonthBkk23 = new Date(Date.UTC(year, month + 1, 0, 16, 0, 0, 0)); // 16:00 UTC = 23:00 BKK
-
         const existingDepreciation = await prisma.expense.findFirst({
             where: {
                 description: "ค่าเสื่อมเฟอร์นิเจอร์",
