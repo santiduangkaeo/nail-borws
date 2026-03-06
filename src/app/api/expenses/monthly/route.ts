@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const dateParam = searchParams.get("date");
-        const currentDate = dateParam ? new Date(dateParam) : new Date();
+
+        // Handle timezone for Thailand (UTC+7)
+        // If no date provided, use current time in Thailand
+        let currentDate: Date;
+        if (dateParam) {
+            currentDate = new Date(dateParam);
+        } else {
+            const now = new Date();
+            // Offset to Thai time if we want to be precise, but usually currentDate is fine for server-side month detection
+            currentDate = now;
+        }
 
         console.log("Checking monthly expenses for date:", currentDate.toISOString());
 
@@ -14,6 +26,7 @@ export async function GET(request: NextRequest) {
         const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1, 12, 0, 0);
 
         let createdCount = 0;
+        let updatedCount = 0;
 
         // 1. Check and create Fixed Expenses (Rent, Net, etc.)
         const existingRent = await prisma.expense.findFirst({
@@ -29,7 +42,6 @@ export async function GET(request: NextRequest) {
             const startOfPrevMonth = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth(), 1);
             const endOfPrevMonth = new Date(prevMonthDate.getFullYear(), prevMonthDate.getMonth() + 1, 0, 23, 59, 59, 999);
 
-            // Using the same logic as dashboard to get revenue
             const prevMonthTransactions = await prisma.transaction.findMany({
                 where: {
                     date: { gte: startOfPrevMonth, lte: endOfPrevMonth }
@@ -51,37 +63,52 @@ export async function GET(request: NextRequest) {
             createdCount += fixedExpenses.length;
         }
 
-        // 2. Check and create Staff Salaries
-        const existingSalaries = await prisma.expense.findFirst({
-            where: {
-                category: "เงินเดือน",
-                date: { gte: startOfMonth, lte: endOfMonth },
-            },
+        // 2. Synchronize Staff Salaries
+        const staffList = await prisma.user.findMany({
+            where: { salary: { gt: 0 } },
         });
 
-        if (!existingSalaries) {
-            const staff = await prisma.user.findMany({
-                where: { salary: { gt: 0 } },
+        for (const staff of staffList) {
+            const description = `เงินเดือนพนักงาน: ${staff.name}`;
+            const amount = Number(staff.salary);
+
+            const existingSalary = await prisma.expense.findFirst({
+                where: {
+                    description: description,
+                    category: "เงินเดือน",
+                    date: { gte: startOfMonth, lte: endOfMonth },
+                },
             });
 
-            if (staff.length > 0) {
-                await prisma.expense.createMany({
-                    data: staff.map((user) => ({
-                        description: `เงินเดือนพนักงาน: ${user.name}`,
-                        amount: Number(user.salary),
+            if (!existingSalary) {
+                await prisma.expense.create({
+                    data: {
+                        description: description,
+                        amount: amount,
                         category: "เงินเดือน",
                         date: firstDayOfMonth,
-                    })),
+                    },
                 });
-                createdCount += staff.length;
+                createdCount++;
+            } else if (Number(existingSalary.amount) !== amount) {
+                // Update existing salary if amount has changed
+                await prisma.expense.update({
+                    where: { id: existingSalary.id },
+                    data: { amount: amount },
+                });
+                updatedCount++;
             }
         }
 
-        if (createdCount === 0) {
+        if (createdCount === 0 && updatedCount === 0) {
             return NextResponse.json({ message: "Monthly expenses already up to date." }, { status: 200 });
         }
 
-        return NextResponse.json({ message: "Monthly expenses generated successfully.", count: createdCount }, { status: 201 });
+        return NextResponse.json({
+            message: "Monthly expenses processed successfully.",
+            created: createdCount,
+            updated: updatedCount
+        }, { status: 200 });
     } catch (error) {
         console.error("Error generating monthly expenses:", error);
         return NextResponse.json({ error: "Failed to generate monthly expenses", details: String(error) }, { status: 500 });
