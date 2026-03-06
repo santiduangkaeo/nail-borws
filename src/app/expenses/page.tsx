@@ -31,19 +31,20 @@ export default function ExpensesPage() {
     const [form, setForm] = useState(emptyForm);
     const [saving, setSaving] = useState(false);
     const [monthIncome, setMonthIncome] = useState(0);
+    const [selectedMonth, setSelectedMonth] = useState(format(new Date(), "yyyy-MM"));
 
     const fetchExpenses = useCallback(async () => {
         setLoading(true);
         try {
+            const [year, month] = selectedMonth.split("-");
             // 1. Trigger monthly expenses check/creation
-            const now = new Date();
-            const dateStr = now.toISOString();
-            await fetch(`/api/expenses/monthly?date=${dateStr}`).catch(err => console.error("Monthly trigger error:", err));
+            const triggerDate = new Date(Number(year), Number(month) - 1, 1).toISOString();
+            await fetch(`/api/expenses/monthly?date=${triggerDate}`).catch(err => console.error("Monthly trigger error:", err));
 
-            // 2. Fetch all expenses and dashboard data
+            // 2. Fetch all expenses and dashboard data for selected month
             const [res, dashRes] = await Promise.all([
-                fetch("/api/expenses"),
-                fetch("/api/dashboard")
+                fetch(`/api/expenses?month=${selectedMonth}`),
+                fetch(`/api/dashboard?year=${year}&month=${Number(month) - 1}`)
             ]);
 
             if (res.ok) {
@@ -60,7 +61,7 @@ export default function ExpensesPage() {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [selectedMonth]);
 
     useEffect(() => { fetchExpenses(); }, [fetchExpenses]);
 
@@ -109,8 +110,7 @@ export default function ExpensesPage() {
     const filtered = expenses
         .filter((e) => {
             const matchesSearch = e.description.includes(search) || e.category.includes(search);
-            const isCurrentMonth = e.date?.slice(0, 7) === currentMonth;
-            return matchesSearch && isCurrentMonth;
+            return matchesSearch;
         })
         .sort((a, b) => {
             // 1. Date Descending (Newest first)
@@ -121,10 +121,7 @@ export default function ExpensesPage() {
             // 2. Specific Priority for Fixed Expenses
             return getPriority(a.description) - getPriority(b.description);
         });
-    const totalThisMonth = expenses
-        .filter((e) => e.date?.slice(0, 7) === format(new Date(), "yyyy-MM"))
-        .reduce((sum, e) => sum + Number(e.amount), 0);
-    const total = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+    const totalThisMonth = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
     const netProfit = monthIncome - totalThisMonth;
 
     return (
@@ -135,9 +132,17 @@ export default function ExpensesPage() {
                         <h1 className="text-2xl font-bold text-gray-900">รายจ่าย</h1>
                         <p className="text-sm text-gray-500 mt-0.5">บันทึกค่าใช้จ่ายของร้าน</p>
                     </div>
-                    <Button onClick={openAdd} className="bg-rose-500 hover:bg-rose-600 text-white gap-2">
-                        <Plus className="h-4 w-4" /> เพิ่มรายจ่าย
-                    </Button>
+                    <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+                        <Input
+                            type="month"
+                            value={selectedMonth}
+                            onChange={(e) => setSelectedMonth(e.target.value)}
+                            className="w-full sm:w-40 border-gray-200 focus:ring-rose-500 h-10"
+                        />
+                        <Button onClick={openAdd} className="w-full sm:w-auto bg-rose-500 hover:bg-rose-600 text-white gap-2">
+                            <Plus className="h-4 w-4" /> เพิ่มรายจ่าย
+                        </Button>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
