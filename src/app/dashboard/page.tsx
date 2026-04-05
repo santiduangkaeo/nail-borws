@@ -42,6 +42,8 @@ const BarTooltip = ({ active, payload, label }: { active?: boolean; payload?: { 
 interface DashboardData {
   todayRevenue: number;
   todayPaymentBreakdown?: Record<string, number>;
+  weeklyRevenue?: number;
+  weeklyPaymentBreakdown?: Record<string, number>;
   monthlyRevenue: number;
   monthlyPaymentBreakdown?: Record<string, number>;
   monthlyExpenses: number;
@@ -185,7 +187,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           {[
             {
               label: "รายได้วันนี้",
@@ -196,6 +198,15 @@ export default function DashboardPage() {
               target: settings?.dailyTarget || 0,
               actual: data?.todayRevenue || 0,
               breakdown: data?.todayPaymentBreakdown
+            },
+            {
+              label: "รายได้สัปดาห์นี้",
+              value: `฿${(data?.weeklyRevenue ?? 0).toLocaleString()}`,
+              icon: TrendingUp,
+              color: "bg-blue-50 text-blue-600",
+              iconBg: "bg-blue-100",
+              actual: data?.weeklyRevenue || 0,
+              breakdown: data?.weeklyPaymentBreakdown
             },
             {
               label: "รายได้เดือนนี้",
@@ -226,43 +237,47 @@ export default function DashboardPage() {
             const targetPercent = s.target ? Math.min((s.actual! / s.target) * 100, 100) : 0;
 
             return (
-              <Card key={s.label} className="relative overflow-hidden border border-gray-100/60 shadow-sm bg-white hover:shadow-lg hover:-translate-y-1 transition-all duration-300 rounded-2xl group">
-                <CardContent className="p-5">
-                  <div className={`absolute -right-6 -top-6 w-24 h-24 rounded-full opacity-20 transition-transform duration-500 group-hover:scale-150 ${s.iconBg}`} />
+              <Card key={s.label} className="relative overflow-hidden border border-gray-100 shadow-sm bg-white hover:shadow-md transition-all duration-300 rounded-2xl group flex flex-col min-h-[160px]">
+                <CardContent className="p-4 flex flex-col flex-1">
+                  <div className={`absolute -right-4 -top-4 w-20 h-20 rounded-full opacity-10 transition-transform duration-500 group-hover:scale-125 ${s.iconBg}`} />
 
-                  <div className="flex items-center sm:items-start gap-4 mb-4 relative z-10">
-                    <div className={`h-12 w-12 rounded-2xl ${s.iconBg} flex items-center justify-center flex-shrink-0 shadow-inner`}>
-                      <Icon className={`h-6 w-6 ${s.color.split(" ")[1]}`} />
+                  <div className="flex items-start gap-3 mb-3 relative z-10">
+                    <div className={`h-10 w-10 rounded-xl ${s.iconBg} flex items-center justify-center flex-shrink-0 shadow-sm`}>
+                      <Icon className={`h-5 w-5 ${s.color.split(" ")[1]}`} />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-gray-500 mb-1 truncate">{s.label}</p>
-                      <p className="text-2xl sm:text-3xl font-bold text-gray-900 truncate tracking-tight">{s.value}</p>
+                      <p className="text-[12px] font-semibold text-gray-500 mb-0.5 truncate uppercase tracking-wider">{s.label}</p>
+                      <p className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight leading-none break-all sm:break-normal">
+                        {s.value}
+                      </p>
                     </div>
                   </div>
 
-                  {s.target !== undefined && s.target > 0 && (
-                    <div className="space-y-2 mt-4 relative z-10">
-                      <div className="flex items-center justify-between text-xs text-gray-500 font-medium">
-                        <span>เป้าหมาย {s.target.toLocaleString()}</span>
-                        <span className="text-gray-900">{targetPercent.toFixed(0)}%</span>
-                      </div>
-                      <Progress value={targetPercent} className="h-2 bg-gray-100" />
-                    </div>
-                  )}
-
-                  {s.breakdown && Object.keys(s.breakdown).length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-gray-100/80 flex flex-col gap-2.5 relative z-10">
-                      {Object.entries(s.breakdown).map(([method, amount]) => (
-                        <div key={method} className="flex justify-between items-center text-xs">
-                          <div className="flex items-center gap-2">
-                            <span className={`w-2 h-2 rounded-full ${PAYMENT_LABELS[method] === "เงินสด" ? "bg-emerald-400" : PAYMENT_LABELS[method] === "โอนเงิน" ? "bg-blue-400" : PAYMENT_LABELS[method] === "บัตรเครดิต" ? "bg-purple-400" : "bg-orange-400"}`} />
-                            <span className="text-gray-500 font-medium">{PAYMENT_LABELS[method] || method}</span>
-                          </div>
-                          <span className="font-bold text-gray-700">฿{amount.toLocaleString()}</span>
+                  <div className="mt-auto relative z-10 flex flex-col gap-3 w-full">
+                    {s.target !== undefined && s.target > 0 && (
+                      <div className="space-y-1.5 px-0.5">
+                        <div className="flex items-center justify-between text-[11px] text-gray-500 font-medium">
+                          <span>เป้าหมาย {s.target.toLocaleString()}</span>
+                          <span className={`${targetPercent >= 100 ? "text-green-600" : "text-gray-900"}`}>{targetPercent.toFixed(0)}%</span>
                         </div>
-                      ))}
-                    </div>
-                  )}
+                        <Progress value={targetPercent} className="h-1.5 bg-gray-100" />
+                      </div>
+                    )}
+
+                    {s.breakdown && Object.keys(s.breakdown).length > 0 && (
+                      <div className="pt-3 border-t border-gray-50 flex flex-col gap-2">
+                        {Object.entries(s.breakdown).map(([method, amount]) => (
+                          <div key={method} className="flex justify-between items-center text-[11px]">
+                            <div className="flex items-center gap-1.5">
+                              <span className={`w-1.5 h-1.5 rounded-full ${PAYMENT_LABELS[method] === "เงินสด" ? "bg-emerald-400" : PAYMENT_LABELS[method] === "โอนเงิน" ? "bg-blue-400" : PAYMENT_LABELS[method] === "บัตรเครดิต" ? "bg-purple-400" : "bg-orange-400"}`} />
+                              <span className="text-gray-500 font-medium">{PAYMENT_LABELS[method] || method}</span>
+                            </div>
+                            <span className="font-bold text-gray-700">฿{amount.toLocaleString()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             );

@@ -206,47 +206,72 @@ export default function StaffLogsPage() {
                             </Label>
                             <div className="relative">
                                 {range === "weekly" ? (
-                                    <Select
-                                        value={(() => {
-                                            const target = dateParam ? new Date(dateParam) : new Date();
-                                            const start = startOfWeek(target, { weekStartsOn: 0 });
-                                            return format(start, "yyyy-MM-dd");
-                                        })()}
-                                        onValueChange={(val) => setDateParam(val)}
-                                    >
-                                        <SelectTrigger className="w-full h-11 bg-gray-50/50 border-gray-200">
-                                            <div className="flex items-center gap-2">
-                                                <CalendarIcon className="h-4 w-4 text-gray-400" />
-                                                <SelectValue placeholder="Select Week" />
-                                            </div>
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {(() => {
-                                                const now = new Date();
-                                                const startOfThisYear = new Date(now.getFullYear(), 0, 1);
-                                                const week1Start = startOfWeek(startOfThisYear, { weekStartsOn: 0 });
-                                                const currentWeekStart = startOfWeek(now, { weekStartsOn: 0 });
-
-                                                const weeks: Date[] = [];
-                                                let temp = currentWeekStart;
-                                                while (temp >= week1Start) {
-                                                    weeks.push(new Date(temp));
-                                                    temp = subWeeks(temp, 1);
-                                                }
-
-                                                return weeks.map((weekDate) => {
-                                                    const start = startOfWeek(weekDate, { weekStartsOn: 0 });
-                                                    const end = endOfWeek(weekDate, { weekStartsOn: 0 });
-                                                    const dateKey = format(start, "yyyy-MM-dd");
-                                                    return (
-                                                        <SelectItem key={dateKey} value={dateKey}>
-                                                            Week {format(weekDate, "w")} ({format(start, "dd/MM")} - {format(end, "dd/MM")})
-                                                        </SelectItem>
-                                                    );
-                                                });
+                                    <div className="flex gap-2">
+                                        <Select
+                                            value={(() => {
+                                                const target = dateParam ? new Date(dateParam) : new Date();
+                                                const start = startOfWeek(target, { weekStartsOn: 0 });
+                                                return format(start, "yyyy-MM-dd");
                                             })()}
-                                        </SelectContent>
-                                    </Select>
+                                            onValueChange={(val) => setDateParam(val)}
+                                        >
+                                            <SelectTrigger className="flex-1 h-11 bg-gray-50/50 border-gray-200">
+                                                <div className="flex items-center gap-2">
+                                                    <CalendarIcon className="h-4 w-4 text-gray-400" />
+                                                    <SelectValue placeholder="Select Week" />
+                                                </div>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {(() => {
+                                                    const target = dateParam ? new Date(dateParam) : new Date();
+                                                    const y = target.getFullYear();
+                                                    const startOfYear = new Date(y, 0, 1);
+                                                    const week1Start = startOfWeek(startOfYear, { weekStartsOn: 0 });
+                                                    const now = new Date();
+                                                    const isThisYear = y === now.getFullYear();
+                                                    const endPoint = isThisYear ? startOfWeek(now, { weekStartsOn: 0 }) : startOfWeek(new Date(y, 11, 31), { weekStartsOn: 0 });
+
+                                                    const weeks: Date[] = [];
+                                                    let temp = endPoint;
+                                                    while (temp >= week1Start && temp.getFullYear() === y) {
+                                                        weeks.push(new Date(temp));
+                                                        temp = subWeeks(temp, 1);
+                                                    }
+
+                                                    return weeks.map((weekDate) => {
+                                                        const start = startOfWeek(weekDate, { weekStartsOn: 0 });
+                                                        const end = endOfWeek(weekDate, { weekStartsOn: 0 });
+                                                        const dateKey = format(start, "yyyy-MM-dd");
+                                                        return (
+                                                            <SelectItem key={dateKey} value={dateKey}>
+                                                                Week {format(weekDate, "w")} ({format(start, "dd/MM")} - {format(end, "dd/MM")})
+                                                            </SelectItem>
+                                                        );
+                                                    });
+                                                })()}
+                                            </SelectContent>
+                                        </Select>
+
+                                        <Select
+                                            value={dateParam ? new Date(dateParam).getFullYear().toString() : new Date().getFullYear().toString()}
+                                            onValueChange={(val) => {
+                                                const current = dateParam ? new Date(dateParam) : new Date();
+                                                current.setFullYear(parseInt(val));
+                                                const firstSunday = startOfWeek(new Date(parseInt(val), 0, 1), { weekStartsOn: 0 });
+                                                setDateParam(format(firstSunday, "yyyy-MM-dd"));
+                                            }}
+                                        >
+                                            <SelectTrigger className="w-[110px] h-11 bg-gray-50/50 border-gray-200">
+                                                <SelectValue placeholder="Year" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Array.from({ length: 5 }).map((_, i) => {
+                                                    const y = new Date().getFullYear() - 2 + i;
+                                                    return <SelectItem key={y} value={y.toString()}>{y + 543}</SelectItem>
+                                                })}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 ) : range === "monthly" ? (
                                     <div className="flex gap-2">
                                         <Select
@@ -283,7 +308,7 @@ export default function StaffLogsPage() {
                                             <SelectContent>
                                                 {Array.from({ length: 5 }).map((_, i) => {
                                                     const y = new Date().getFullYear() - 2 + i;
-                                                    return <SelectItem key={y} value={y.toString()}>{y}</SelectItem>
+                                                    return <SelectItem key={y} value={y.toString()}>{y + 543}</SelectItem>
                                                 })}
                                             </SelectContent>
                                         </Select>

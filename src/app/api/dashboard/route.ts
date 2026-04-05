@@ -35,8 +35,28 @@ export async function GET(request: Request) {
             (sum, t) => sum + Number(t.totalAmount),
             0
         );
-
         const todayPaymentBreakdown = todayTransactions.reduce((acc, t) => {
+            const method = t.paymentMethod || 'UNKNOWN';
+            acc[method] = (acc[method] || 0) + Number(t.totalAmount);
+            return acc;
+        }, {} as Record<string, number>);
+
+        // Weekly revenue (current week Sunday - Saturday in BKK)
+        const anchorDate = new Date(todayStart);
+        const dayOfWeek = anchorDate.getDay(); // 0 is Sunday
+        const diff = anchorDate.getDate() - dayOfWeek;
+        const weekStart = new Date(anchorDate);
+        weekStart.setDate(diff);
+        weekStart.setHours(0, 0, 0, 0);
+
+        const weekTransactions = await prisma.transaction.findMany({
+            where: { date: { gte: weekStart, lt: todayEnd } },
+        });
+        const weeklyRevenue = weekTransactions.reduce(
+            (sum, t) => sum + Number(t.totalAmount),
+            0
+        );
+        const weeklyPaymentBreakdown = weekTransactions.reduce((acc, t) => {
             const method = t.paymentMethod || 'UNKNOWN';
             acc[method] = (acc[method] || 0) + Number(t.totalAmount);
             return acc;
@@ -109,6 +129,8 @@ export async function GET(request: Request) {
         return NextResponse.json({
             todayRevenue,
             todayPaymentBreakdown,
+            weeklyRevenue,
+            weeklyPaymentBreakdown,
             monthlyRevenue: monthRevenue,
             monthlyPaymentBreakdown,
             monthlyExpenses: monthExpenseTotal,
