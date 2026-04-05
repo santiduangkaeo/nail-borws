@@ -12,7 +12,7 @@ export async function GET(request: Request) {
         const monthParam = searchParams.get("month");
 
         // Use centralized utility for BKK (UTC+7) calculations
-        const { start: todayStart, end: todayEnd, year: currentBkkYear, month: currentBkkMonth } = getBkkTodayRange();
+        const { start: todayStart, end: todayEnd, year: currentBkkYear, month: currentBkkMonth, day: currentBkkDay } = getBkkTodayRange();
 
         let targetYear = yearParam ? parseInt(yearParam, 10) : currentBkkYear;
         if (targetYear > 2500) targetYear -= 543; // Convert BE back to AD for DB query
@@ -42,12 +42,10 @@ export async function GET(request: Request) {
         }, {} as Record<string, number>);
 
         // Weekly revenue (current week Sunday - Saturday in BKK)
-        const anchorDate = new Date(todayStart);
-        const dayOfWeek = anchorDate.getDay(); // 0 is Sunday
-        const diff = anchorDate.getDate() - dayOfWeek;
-        const weekStart = new Date(anchorDate);
-        weekStart.setDate(diff);
-        weekStart.setHours(0, 0, 0, 0);
+        const bkkToday = new Date(Date.UTC(currentBkkYear, currentBkkMonth, currentBkkDay));
+        const dayOfWeek = bkkToday.getUTCDay(); // 0 is Sunday
+        const startOfWeekBkkDate = currentBkkDay - dayOfWeek;
+        const weekStart = new Date(Date.UTC(currentBkkYear, currentBkkMonth, startOfWeekBkkDate - 1, 17, 0, 0, 0));
 
         const weekTransactions = await prisma.transaction.findMany({
             where: { date: { gte: weekStart, lt: todayEnd } },

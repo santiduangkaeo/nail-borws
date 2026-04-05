@@ -17,14 +17,13 @@ export async function GET(request: NextRequest) {
             const endOfMonth = new Date(Date.UTC(y, m + 1, 0, 17, 0, 0, 0));
             where.date = { gte: startOfMonth, lt: endOfMonth };
         } else if (range === "weekly") {
-            // Re-calculate start of week based on anchor date in BKK
-            const anchorDate = new Date(Date.UTC(y, m, d - 1, 17, 0, 0, 0));
-            const dayOfWeek = anchorDate.getDay();
-            const diff = anchorDate.getDate() - dayOfWeek;
+            // Re-calculate start of week safely using UTC to avoid server locale issues
+            const bkkDate = new Date(Date.UTC(y, m, d)); 
+            const dayOfWeek = bkkDate.getUTCDay(); // 0 is Sunday
+            const startOfWeekBkkDate = d - dayOfWeek;
 
-            const startOfWeek = new Date(Date.UTC(y, m, diff - 1, 17, 0, 0, 0));
-            const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(startOfWeek.getDate() + 7);
+            const startOfWeek = new Date(Date.UTC(y, m, startOfWeekBkkDate - 1, 17, 0, 0, 0));
+            const endOfWeek = new Date(Date.UTC(y, m, startOfWeekBkkDate + 6, 17, 0, 0, 0));
             where.date = { gte: startOfWeek, lt: endOfWeek };
         } else { // today or date
             where.date = { gte: todayStart, lt: todayEnd };
