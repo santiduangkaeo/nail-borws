@@ -53,7 +53,7 @@ function SwapableServiceCard({ svc, inCart, isEditingLayout, isSelectedForSwap, 
                 <div className={`font-semibold text-[13px] leading-snug line-clamp-2 ${isEditingLayout ? 'text-gray-600' : 'text-gray-800'}`}>{svc.name}</div>
             </div>
             <div className="flex items-end justify-between w-full mt-2">
-                <span className={`text-[15px] font-bold ${isEditingLayout && !isSelectedForSwap ? 'text-gray-400' : 'text-rose-600'}`}>{svc.price} THB</span>
+                <span className={`text-[15px] font-bold ${isEditingLayout && !isSelectedForSwap ? 'text-gray-400' : 'text-rose-600'}`}>{svc.price.toLocaleString()} THB</span>
                 {!isEditingLayout && inCart && <Badge className="bg-rose-500 hover:bg-rose-600 text-white text-[10px] px-1.5 rounded-md min-w-[20px] text-center">{inCart.quantity}</Badge>}
             </div>
         </div>
@@ -327,7 +327,7 @@ export default function RecordsPage() {
                                     </div>
                                     <div className="flex items-center gap-6">
                                         <div className="text-right">
-                                            <p className="text-[15px] font-bold text-gray-900">{item.service.price * item.quantity} THB</p>
+                                            <p className="text-[15px] font-bold text-gray-900">{(item.service.price * item.quantity).toLocaleString()} THB</p>
                                             <p className="text-xs text-gray-500 font-medium mt-0.5">x {item.quantity}</p>
                                         </div>
                                         <button onClick={() => removeFromCart(item.service.id)} className="p-2 hover:bg-red-50 rounded-lg text-red-500 transition-colors">
@@ -365,7 +365,7 @@ export default function RecordsPage() {
                         <div className="absolute top-0 right-0 -mt-10 -mr-10 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
                         <p className="text-white/90 text-[15px] font-semibold mb-2">Total Amount</p>
                         <div className="flex items-baseline justify-center gap-2">
-                            <span className="text-white text-5xl font-bold tracking-tight">{cartTotal}</span>
+                            <span className="text-white text-5xl font-bold tracking-tight">{cartTotal.toLocaleString()}</span>
                             <span className="text-white/90 text-2xl font-bold tracking-tight">THB</span>
                         </div>
                     </div>

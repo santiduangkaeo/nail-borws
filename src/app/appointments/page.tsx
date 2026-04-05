@@ -163,6 +163,12 @@ export default function AppointmentsPage() {
                                                 <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{appt.time}</span>
                                                 {appt.phone && <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{appt.phone}</span>}
                                             </div>
+                                            {appt.notes && (
+                                                <div className="mt-2.5 p-2 bg-gray-50 rounded-lg border border-gray-100 flex gap-2 text-xs text-gray-500">
+                                                    <span className="shrink-0 pt-0.5 opacity-60">📝</span>
+                                                    <p className="line-clamp-2 italic">{appt.notes}</p>
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="flex gap-2 flex-shrink-0">
                                             <Button size="sm" variant="outline" onClick={() => openEdit(appt)} className="h-8 px-3 text-xs">Edit</Button>
@@ -206,7 +212,7 @@ export default function AppointmentsPage() {
                                 <Select value={form.serviceId} onValueChange={(v) => setForm(f => ({ ...f, serviceId: v }))}>
                                     <SelectTrigger><SelectValue placeholder="Select Service" /></SelectTrigger>
                                     <SelectContent>
-                                        {services.map((s) => <SelectItem key={s.id} value={s.id}>{s.name} — ฿{s.price}</SelectItem>)}
+                                        {services.map((s) => <SelectItem key={s.id} value={s.id}>{s.name} — ฿{s.price.toLocaleString()}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>
