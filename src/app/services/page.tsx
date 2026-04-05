@@ -233,7 +233,7 @@ export default function ServicesPage() {
                                 </div>
                                 <h3 className="font-semibold text-gray-900 text-base leading-snug mb-3">{svc.name}</h3>
                                 <div className="flex items-center justify-between">
-                                    <span className="text-lg font-bold text-rose-600">฿{svc.price.toLocaleString()}</span>
+                                    <span className="text-lg font-bold text-rose-600">฿{Number(svc.price).toLocaleString()}</span>
                                     <span className="flex items-center gap-1 text-xs text-gray-400">
                                         <Clock className="h-3 w-3" />
                                         {svc.durationMinutes} นาที

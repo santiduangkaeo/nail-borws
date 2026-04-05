@@ -53,7 +53,7 @@ function SwapableServiceCard({ svc, inCart, isEditingLayout, isSelectedForSwap, 
                 <div className={`font-semibold text-[13px] leading-snug line-clamp-2 ${isEditingLayout ? 'text-gray-600' : 'text-gray-800'}`}>{svc.name}</div>
             </div>
             <div className="flex items-end justify-between w-full mt-2">
-                <span className={`text-[15px] font-bold ${isEditingLayout && !isSelectedForSwap ? 'text-gray-400' : 'text-rose-600'}`}>{svc.price.toLocaleString()} THB</span>
+                <span className={`text-[15px] font-bold ${isEditingLayout && !isSelectedForSwap ? 'text-gray-400' : 'text-rose-600'}`}>{Number(svc.price).toLocaleString()} THB</span>
                 {!isEditingLayout && inCart && <Badge className="bg-rose-500 hover:bg-rose-600 text-white text-[10px] px-1.5 rounded-md min-w-[20px] text-center">{inCart.quantity}</Badge>}
             </div>
         </div>

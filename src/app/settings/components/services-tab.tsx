@@ -62,7 +62,7 @@ function ServiceCard({ svc, onEdit, onDelete }: { svc: ServiceItem, onEdit: () =
             </div>
             <h4 className="font-bold text-gray-800 text-base mb-3 leading-snug">{svc.name}</h4>
             <div className="flex items-center justify-between">
-                <span className="text-lg font-bold text-rose-500">฿{svc.price.toLocaleString()}</span>
+                <span className="text-lg font-bold text-rose-500">฿{Number(svc.price).toLocaleString()}</span>
                 <span className="flex items-center gap-1.5 text-sm font-medium text-gray-500 bg-gray-50 px-2.5 py-1 rounded-lg">
                     <Clock className="h-3.5 w-3.5" />
                     {svc.durationMinutes} นาที

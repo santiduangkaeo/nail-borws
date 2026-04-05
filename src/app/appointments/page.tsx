@@ -157,7 +157,7 @@ export default function AppointmentsPage() {
                                                 <span className="font-semibold text-gray-900">{appt.customerName}</span>
                                                 <Badge variant="outline" className={`text-xs gap-1 ${cfg.color}`}>{cfg.icon}{cfg.label}</Badge>
                                             </div>
-                                            <p className="text-sm text-gray-500 mt-0.5">{appt.service.name} · ฿{appt.service.price.toLocaleString()}</p>
+                                            <p className="text-sm text-gray-500 mt-0.5">{appt.service.name} · ฿{Number(appt.service.price).toLocaleString()}</p>
                                             <div className="flex items-center gap-3 mt-1 text-xs text-gray-400">
                                                 <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{dateStr}</span>
                                                 <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{appt.time}</span>
@@ -212,7 +212,7 @@ export default function AppointmentsPage() {
                                 <Select value={form.serviceId} onValueChange={(v) => setForm(f => ({ ...f, serviceId: v }))}>
                                     <SelectTrigger><SelectValue placeholder="Select Service" /></SelectTrigger>
                                     <SelectContent>
-                                        {services.map((s) => <SelectItem key={s.id} value={s.id}>{s.name} — ฿{s.price.toLocaleString()}</SelectItem>)}
+                                        {services.map((s) => <SelectItem key={s.id} value={s.id}>{s.name} — ฿{Number(s.price).toLocaleString()}</SelectItem>)}
                                     </SelectContent>
                                 </Select>
                             </div>

@@ -189,7 +189,7 @@ export default function ExpensesPage() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <span className="text-lg font-bold text-red-500">-฿{exp.amount.toLocaleString()}</span>
+                                            <span className="text-lg font-bold text-red-500">-฿{Number(exp.amount).toLocaleString()}</span>
                                             <button onClick={() => openEdit(exp)} className="p-1.5 hover:bg-blue-50 rounded-lg text-blue-500"><Pencil className="h-3.5 w-3.5" /></button>
                                             <button onClick={() => handleDelete(exp.id)} className="p-1.5 hover:bg-red-50 rounded-lg text-red-500"><Trash2 className="h-3.5 w-3.5" /></button>
                                         </div>
